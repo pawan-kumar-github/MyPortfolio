@@ -44,6 +44,10 @@
         <li><a href="#achievements" class="nav-link">Achievements</a></li>
         <li><a href="#contact" class="nav-link">Contact</a></li>
       </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle glassmorphism theme" title="Toggle Glass Theme">
+        <svg class="icon-glass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L8 7H3l3.5 4L5 17l7-3 7 3-1.5-6L21 7h-5L12 2z"/></svg>
+        <svg class="icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
       </button>
@@ -53,6 +57,7 @@
   <!-- ===== HERO ===== -->
   <section class="hero" id="hero">
     <div class="hero-bg">
+      <canvas id="particleCanvas"></canvas>
       <div class="hero-grid"></div>
       <div class="hero-glow glow-1"></div>
       <div class="hero-glow glow-2"></div>
@@ -531,6 +536,10 @@
                 <span class="ci-label">Email</span>
                 <span class="ci-value">kumarpk98pawansah@gmail.com</span>
               </div>
+              <button class="copy-btn" data-copy="kumarpk98pawansah@gmail.com" title="Copy email address" aria-label="Copy email">
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
             </a>
             <a href="https://www.linkedin.com/in/pawan-kumar-sah-72499b14b/" target="_blank" rel="noopener" class="contact-item">
               <div class="ci-icon">
@@ -579,8 +588,19 @@
     <div class="container">
       <p>Designed &amp; Built by <strong>Pawan Kumar Sah</strong></p>
       <p class="footer-sub">Consultant · Deloitte · Bengaluru, India</p>
+      <div class="visitor-badge" id="visitorBadge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span id="visitorCount">—</span>
+        <span class="visitor-label">total visits</span>
+      </div>
     </div>
   </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMsg">Email copied!</span>
+  </div>
 
   <div class="progress-bar" id="progressBar"></div>
 

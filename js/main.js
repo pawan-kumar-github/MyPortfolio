@@ -226,3 +226,184 @@ const tlObserver = new IntersectionObserver(
   { threshold: 0.3 }
 );
 timelineItems.forEach(item => tlObserver.observe(item));
+
+/* =====================================================
+   PARTICLE / NETWORK BACKGROUND
+   ===================================================== */
+(function initParticles() {
+  const canvas = document.getElementById('particleCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles;
+  const mouse = { x: null, y: null };
+  const MAX_DIST = 130;
+  const PARTICLE_COUNT_DIVISOR = 12000;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  class Particle {
+    constructor() { this.init(); }
+    init() {
+      this.x  = Math.random() * W;
+      this.y  = Math.random() * H;
+      this.vx = (Math.random() - 0.5) * 0.7;
+      this.vy = (Math.random() - 0.5) * 0.7;
+      this.r  = Math.random() * 1.8 + 0.8;
+      this.alpha = Math.random() * 0.45 + 0.15;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > W) this.vx *= -1;
+      if (this.y < 0 || this.y > H) this.vy *= -1;
+      if (mouse.x !== null) {
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const d  = Math.hypot(dx, dy);
+        if (d < 160) {
+          const force = (160 - d) / 160 * 0.25;
+          this.vx += (dx / d) * force;
+          this.vy += (dy / d) * force;
+          const speed = Math.hypot(this.vx, this.vy);
+          if (speed > 2.5) { this.vx = (this.vx / speed) * 2.5; this.vy = (this.vy / speed) * 2.5; }
+        }
+      }
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(79,142,247,${this.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  function buildParticles() {
+    const count = Math.min(Math.floor((W * H) / PARTICLE_COUNT_DIVISOR), 110);
+    particles = Array.from({ length: count }, () => new Particle());
+  }
+
+  function drawEdges() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d  = Math.hypot(dx, dy);
+        if (d < MAX_DIST) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(79,142,247,${(1 - d / MAX_DIST) * 0.25})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    drawEdges();
+    requestAnimationFrame(animate);
+  }
+
+  const heroSection = document.getElementById('hero');
+  heroSection.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - r.left;
+    mouse.y = e.clientY - r.top;
+  });
+  heroSection.addEventListener('mouseleave', () => { mouse.x = null; mouse.y = null; });
+
+  window.addEventListener('resize', () => { resize(); buildParticles(); });
+
+  resize();
+  buildParticles();
+  animate();
+})();
+
+/* =====================================================
+   GLASSMORPHISM THEME TOGGLE
+   ===================================================== */
+(function initThemeToggle() {
+  const btn  = document.getElementById('themeToggle');
+  const root = document.documentElement;
+
+  if (localStorage.getItem('portfolioTheme') === 'glass') {
+    root.setAttribute('data-theme', 'glass');
+    btn.classList.add('active');
+  }
+
+  btn.addEventListener('click', () => {
+    const isGlass = root.getAttribute('data-theme') === 'glass';
+    if (isGlass) {
+      root.removeAttribute('data-theme');
+      localStorage.setItem('portfolioTheme', 'dark');
+      btn.classList.remove('active');
+    } else {
+      root.setAttribute('data-theme', 'glass');
+      localStorage.setItem('portfolioTheme', 'glass');
+      btn.classList.add('active');
+    }
+  });
+})();
+
+/* =====================================================
+   COPY EMAIL BUTTON
+   ===================================================== */
+function showToast(msg) {
+  const toast   = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+  toastMsg.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* =====================================================
+   VISITOR COUNTER
+   ===================================================== */
+(function initVisitorCounter() {
+  const el = document.getElementById('visitorCount');
+  if (!el) return;
+  fetch('https://api.counterapi.dev/v1/pawan-kumar-github/portfolio/up')
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.count != null) {
+        el.textContent = data.count.toLocaleString();
+      }
+    })
+    .catch(() => {
+      // Silently hide badge if API is unavailable
+      const badge = document.getElementById('visitorBadge');
+      if (badge) badge.style.display = 'none';
+    });
+})();
+
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    const text = btn.dataset.copy;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      showToast('Email copied to clipboard!');
+      setTimeout(() => btn.classList.remove('copied'), 2500);
+    }).catch(() => {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.classList.add('copied');
+      showToast('Email copied to clipboard!');
+      setTimeout(() => btn.classList.remove('copied'), 2500);
+    });
+  });
+});
