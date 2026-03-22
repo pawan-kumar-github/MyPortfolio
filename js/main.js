@@ -228,6 +228,67 @@ const tlObserver = new IntersectionObserver(
 timelineItems.forEach(item => tlObserver.observe(item));
 
 /* =====================================================
+   RECOGNITIONS CAROUSEL
+   ===================================================== */
+(function initCarousel() {
+  const slides  = document.querySelectorAll('.carousel-slide');
+  const dots    = document.querySelectorAll('.carousel-dots .dot');
+  const prevBtn = document.getElementById('carouselPrev');
+  const nextBtn = document.getElementById('carouselNext');
+  const wrap    = document.querySelector('.carousel-wrap');
+  if (!slides.length) return;
+
+  let current = 0;
+  let timer   = null;
+  let paused  = false;
+  const DELAY = 5000;
+
+  function goTo(index) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (index + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    refreshProgressBar();
+  }
+
+  function refreshProgressBar() {
+    document.querySelectorAll('.carousel-progress').forEach(b => b.remove());
+    const bar = document.createElement('div');
+    bar.className = 'carousel-progress';
+    slides[current].querySelector('.slide-inner').appendChild(bar);
+  }
+
+  function startTimer() {
+    clearInterval(timer);
+    if (!paused) timer = setInterval(() => goTo(current + 1), DELAY);
+  }
+
+  prevBtn.addEventListener('click', () => { goTo(current - 1); startTimer(); });
+  nextBtn.addEventListener('click', () => { goTo(current + 1); startTimer(); });
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      goTo(parseInt(dot.dataset.index, 10));
+      startTimer();
+    });
+  });
+
+  wrap.addEventListener('mouseenter', () => { paused = true;  clearInterval(timer); });
+  wrap.addEventListener('mouseleave', () => { paused = false; startTimer(); });
+
+  let touchStartX = 0;
+  wrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  wrap.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { diff > 0 ? goTo(current + 1) : goTo(current - 1); startTimer(); }
+  });
+
+  refreshProgressBar();
+  startTimer();
+})();
+
+/* =====================================================
    PARTICLE / NETWORK BACKGROUND
    ===================================================== */
 (function initParticles() {
